@@ -1,0 +1,264 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+files <-  list.files("C:\\Users\\bunse\\Documents\\labor_2months",
+                     pattern = "xls",
+                     full.names = TRUE)
+
+
+
+```
+
+
+```{r}
+
+transition_cols <- c("sex",
+                     "age",
+                     "yyyymm",
+                     "employed_employed",
+                     "employed_nilf",
+                     "employed_unemp",
+                     "unemp_unemp",
+                     "unemp_employed",
+                     "unemp_nilf",
+                     "nilf_nilf",
+                     "nilf_employed",
+                     "nilf_unemp")
+
+df_master <- data.frame(matrix(ncol = length(transition_cols))[0,])
+colnames(df_master) <- transition_cols
+
+
+for(i in files){
+  
+    tmp <- read_xls(i,
+         sheet = 1,
+         range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "total"
+    df[1,"age"] <- "total"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 6,
+           range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "male"
+    df[1,"age"] <- "15-34"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 7,
+           range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "male"
+    df[1,"age"] <- "35-54"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 8,
+           range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "male"
+    df[1,"age"] <- "55-"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df_master <- rbind(df_master,df)
+    
+        tmp <- read_xls(i,
+           sheet = 10,
+           range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "female"
+    df[1,"age"] <- "15-34"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 11,
+           range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "female"
+    df[1,"age"] <- "35-54"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 12,
+           range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "female"
+    df[1,"age"] <- "55-"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df_master <- rbind(df_master,df)
+    
+    
+}
+```
+
+```{r}
+write.csv(df_master,"２か月連続サンプル.csv")
+```
+
+```{r}
+transition_cols <- c("sex",
+                     "age",
+                     "yyyymm",
+                     "seiki_seiki",
+                     "seiki_hiseiki",
+                     "hiseiki_hiseiki",
+                     "hiseiki_seiki"
+                     )
+
+df_master <- data.frame(matrix(ncol = length(transition_cols))[0,])
+colnames(df_master) <- transition_cols
+
+
+for(i in files){
+  
+    tmp <- read_xls(i,
+         sheet = 1,
+         range = "T18:BJ60")
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "total"
+    df[1,"age"] <- "total"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()
+    
+    
+    
+    df_master <- rbind(df_master,df)
+
+}
+```
+

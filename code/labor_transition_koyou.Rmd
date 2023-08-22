@@ -1,0 +1,464 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+
+files <-  list.files(here("koyou"),
+                     pattern = "xls",
+                     full.names = TRUE)
+
+
+
+```
+
+
+```{r, warning=FALSE}
+
+#就業形態は、"今月"_"先月"の順番で統一。
+
+transition_cols <- c("sex",
+                     "age",
+                     "yyyymm",
+                     
+                     "seiki_total",
+                     "hiseiki_total",
+                     "seiki_seiki",
+                     "seiki_hiseiki",
+                     "hiseiki_hiseiki",
+                     "hiseiki_seiki",
+                     
+                     "employed_total",
+                     "unemp_total",
+                     "nilf_total",
+                     
+                     "employed_employed",
+                     "employed_nilf",
+                     "employed_unemp",
+                     "unemp_unemp",
+                     "unemp_employed",
+                     "unemp_nilf",
+                     "nilf_nilf",
+                     "nilf_employed",
+                     "nilf_unemp",
+                     
+                     "seiki_nilf",
+                     "seiki_unemp",
+                     "hiseiki_nilf",
+                     "hiseiki_unemp",
+                     
+                     "unemp_seiki",
+                     "unemp_hiseiki",
+                     
+                     "nilf_seiki",
+                     "nilf_hiseiki"
+                     
+                     
+                     )
+
+df_master <- data.frame(matrix(ncol = length(transition_cols))[0,])
+colnames(df_master) <- transition_cols
+
+
+for(i in files){
+  
+  
+  
+    tmp <- read_xls(i,
+         sheet = 1,
+         range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+      
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "total"
+    df[1,"age"] <- "total"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_total"] <- tmp[4,1] %>% as.numeric()-tmp[4,42] %>% as.numeric()-tmp[4,43] %>% as.numeric()
+    df[1,"unemp_total"] <- tmp[36,1] %>% as.numeric()-tmp[36,42] %>% as.numeric()-tmp[36,43] %>% as.numeric()
+    df[1,"nilf_total"] <- tmp[37,1] %>% as.numeric()-tmp[37,42] %>% as.numeric()-tmp[37,43] %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df[1,"seiki_total"] <- tmp[26,1] %>% as.numeric() + tmp[12,1] %>% as.numeric()-(tmp[26,42] %>% as.numeric() + tmp[12,42] %>% as.numeric())-(tmp[26,43] %>% as.numeric() + tmp[12,43] %>% as.numeric())
+    df[1,"hiseiki_total"] <- tmp[27,1] %>% as.numeric() + tmp[13,1] %>% as.numeric()-(tmp[27,42] %>% as.numeric() + tmp[13,42] %>% as.numeric())-(tmp[27,43] %>% as.numeric() + tmp[13,43] %>% as.numeric())
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()+tmp[12,26] %>% as.numeric()+tmp[26,12] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()+tmp[12,27] %>% as.numeric()+tmp[26,13] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()+tmp[13,27] %>% as.numeric()+tmp[27,13] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()+tmp[13,26] %>% as.numeric()+tmp[27,12] %>% as.numeric()
+    
+    df[1,"seiki_unemp"] <- tmp[26,36] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"seiki_nilf"] <- tmp[26,37] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"hiseiki_unemp"] <- tmp[27,36] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"hiseiki_nilf"] <- tmp[27,37] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    df[1,"unemp_seiki"] <- tmp[36,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"unemp_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"nilf_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"nilf_seiki"] <- tmp[37,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    
+    df_master <- rbind(df_master,df)
+    
+    
+    tmp <- read_xls(i,
+           sheet = 6,
+           range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "male"
+    df[1,"age"] <- "15-34"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_total"] <- tmp[4,1] %>% as.numeric()-tmp[4,42] %>% as.numeric()-tmp[4,43] %>% as.numeric()
+    df[1,"unemp_total"] <- tmp[36,1] %>% as.numeric()-tmp[36,42] %>% as.numeric()-tmp[36,43] %>% as.numeric()
+    df[1,"nilf_total"] <- tmp[37,1] %>% as.numeric()-tmp[37,42] %>% as.numeric()-tmp[37,43] %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df[1,"seiki_total"] <- tmp[26,1] %>% as.numeric() + tmp[12,1] %>% as.numeric()-(tmp[26,42] %>% as.numeric() + tmp[12,42] %>% as.numeric())-(tmp[26,43] %>% as.numeric() + tmp[12,43] %>% as.numeric())
+    df[1,"hiseiki_total"] <- tmp[27,1] %>% as.numeric() + tmp[13,1] %>% as.numeric()-(tmp[27,42] %>% as.numeric() + tmp[13,42] %>% as.numeric())-(tmp[27,43] %>% as.numeric() + tmp[13,43] %>% as.numeric())
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()+tmp[12,26] %>% as.numeric()+tmp[26,12] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()+tmp[12,27] %>% as.numeric()+tmp[26,13] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()+tmp[13,27] %>% as.numeric()+tmp[27,13] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()+tmp[13,26] %>% as.numeric()+tmp[27,12] %>% as.numeric()
+    
+    df[1,"seiki_unemp"] <- tmp[26,36] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"seiki_nilf"] <- tmp[26,37] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"hiseiki_unemp"] <- tmp[27,36] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"hiseiki_nilf"] <- tmp[27,37] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    df[1,"unemp_seiki"] <- tmp[36,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"unemp_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"nilf_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"nilf_seiki"] <- tmp[37,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    
+    
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 7,
+           range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "male"
+    df[1,"age"] <- "35-54"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_total"] <- tmp[4,1] %>% as.numeric()-tmp[4,42] %>% as.numeric()-tmp[4,43] %>% as.numeric()
+    df[1,"unemp_total"] <- tmp[36,1] %>% as.numeric()-tmp[36,42] %>% as.numeric()-tmp[36,43] %>% as.numeric()
+    df[1,"nilf_total"] <- tmp[37,1] %>% as.numeric()-tmp[37,42] %>% as.numeric()-tmp[37,43] %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df[1,"seiki_total"] <- tmp[26,1] %>% as.numeric() + tmp[12,1] %>% as.numeric()-(tmp[26,42] %>% as.numeric() + tmp[12,42] %>% as.numeric())-(tmp[26,43] %>% as.numeric() + tmp[12,43] %>% as.numeric())
+    df[1,"hiseiki_total"] <- tmp[27,1] %>% as.numeric() + tmp[13,1] %>% as.numeric()-(tmp[27,42] %>% as.numeric() + tmp[13,42] %>% as.numeric())-(tmp[27,43] %>% as.numeric() + tmp[13,43] %>% as.numeric())
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()+tmp[12,26] %>% as.numeric()+tmp[26,12] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()+tmp[12,27] %>% as.numeric()+tmp[26,13] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()+tmp[13,27] %>% as.numeric()+tmp[27,13] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()+tmp[13,26] %>% as.numeric()+tmp[27,12] %>% as.numeric()
+    
+    df[1,"seiki_unemp"] <- tmp[26,36] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"seiki_nilf"] <- tmp[26,37] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"hiseiki_unemp"] <- tmp[27,36] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"hiseiki_nilf"] <- tmp[27,37] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    df[1,"unemp_seiki"] <- tmp[36,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"unemp_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"nilf_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"nilf_seiki"] <- tmp[37,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    
+    
+    
+    df_master <- rbind(df_master,df)
+    
+    
+    tmp <- read_xls(i,
+           sheet = 8,
+           range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "male"
+    df[1,"age"] <- "55-"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_total"] <- tmp[4,1] %>% as.numeric()-tmp[4,42] %>% as.numeric()-tmp[4,43] %>% as.numeric()
+    df[1,"unemp_total"] <- tmp[36,1] %>% as.numeric()-tmp[36,42] %>% as.numeric()-tmp[36,43] %>% as.numeric()
+    df[1,"nilf_total"] <- tmp[37,1] %>% as.numeric()-tmp[37,42] %>% as.numeric()-tmp[37,43] %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df[1,"seiki_total"] <- tmp[26,1] %>% as.numeric() + tmp[12,1] %>% as.numeric()-(tmp[26,42] %>% as.numeric() + tmp[12,42] %>% as.numeric())-(tmp[26,43] %>% as.numeric() + tmp[12,43] %>% as.numeric())
+    df[1,"hiseiki_total"] <- tmp[27,1] %>% as.numeric() + tmp[13,1] %>% as.numeric()-(tmp[27,42] %>% as.numeric() + tmp[13,42] %>% as.numeric())-(tmp[27,43] %>% as.numeric() + tmp[13,43] %>% as.numeric())
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()+tmp[12,26] %>% as.numeric()+tmp[26,12] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()+tmp[12,27] %>% as.numeric()+tmp[26,13] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()+tmp[13,27] %>% as.numeric()+tmp[27,13] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()+tmp[13,26] %>% as.numeric()+tmp[27,12] %>% as.numeric()
+    
+    df[1,"seiki_unemp"] <- tmp[26,36] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"seiki_nilf"] <- tmp[26,37] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"hiseiki_unemp"] <- tmp[27,36] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"hiseiki_nilf"] <- tmp[27,37] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    df[1,"unemp_seiki"] <- tmp[36,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"unemp_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"nilf_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"nilf_seiki"] <- tmp[37,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    
+    
+    
+    
+    df_master <- rbind(df_master,df)
+    
+        tmp <- read_xls(i,
+           sheet = 10,
+           range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "female"
+    df[1,"age"] <- "15-34"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_total"] <- tmp[4,1] %>% as.numeric()-tmp[4,42] %>% as.numeric()-tmp[4,43] %>% as.numeric()
+    df[1,"unemp_total"] <- tmp[36,1] %>% as.numeric()-tmp[36,42] %>% as.numeric()-tmp[36,43] %>% as.numeric()
+    df[1,"nilf_total"] <- tmp[37,1] %>% as.numeric()-tmp[37,42] %>% as.numeric()-tmp[37,43] %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df[1,"seiki_total"] <- tmp[26,1] %>% as.numeric() + tmp[12,1] %>% as.numeric()-(tmp[26,42] %>% as.numeric() + tmp[12,42] %>% as.numeric())-(tmp[26,43] %>% as.numeric() + tmp[12,43] %>% as.numeric())
+    df[1,"hiseiki_total"] <- tmp[27,1] %>% as.numeric() + tmp[13,1] %>% as.numeric()-(tmp[27,42] %>% as.numeric() + tmp[13,42] %>% as.numeric())-(tmp[27,43] %>% as.numeric() + tmp[13,43] %>% as.numeric())
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()+tmp[12,26] %>% as.numeric()+tmp[26,12] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()+tmp[12,27] %>% as.numeric()+tmp[26,13] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()+tmp[13,27] %>% as.numeric()+tmp[27,13] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()+tmp[13,26] %>% as.numeric()+tmp[27,12] %>% as.numeric()
+    
+    df[1,"seiki_unemp"] <- tmp[26,36] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"seiki_nilf"] <- tmp[26,37] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"hiseiki_unemp"] <- tmp[27,36] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"hiseiki_nilf"] <- tmp[27,37] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    df[1,"unemp_seiki"] <- tmp[36,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"unemp_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"nilf_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"nilf_seiki"] <- tmp[37,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    
+    
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 11,
+           range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "female"
+    df[1,"age"] <- "35-54"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_total"] <- tmp[4,1] %>% as.numeric()-tmp[4,42] %>% as.numeric()-tmp[4,43] %>% as.numeric()
+    df[1,"unemp_total"] <- tmp[36,1] %>% as.numeric()-tmp[36,42] %>% as.numeric()-tmp[36,43] %>% as.numeric()
+    df[1,"nilf_total"] <- tmp[37,1] %>% as.numeric()-tmp[37,42] %>% as.numeric()-tmp[37,43] %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df[1,"seiki_total"] <- tmp[26,1] %>% as.numeric() + tmp[12,1] %>% as.numeric()-(tmp[26,42] %>% as.numeric() + tmp[12,42] %>% as.numeric())-(tmp[26,43] %>% as.numeric() + tmp[12,43] %>% as.numeric())
+    df[1,"hiseiki_total"] <- tmp[27,1] %>% as.numeric() + tmp[13,1] %>% as.numeric()-(tmp[27,42] %>% as.numeric() + tmp[13,42] %>% as.numeric())-(tmp[27,43] %>% as.numeric() + tmp[13,43] %>% as.numeric())
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()+tmp[12,26] %>% as.numeric()+tmp[26,12] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()+tmp[12,27] %>% as.numeric()+tmp[26,13] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()+tmp[13,27] %>% as.numeric()+tmp[27,13] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()+tmp[13,26] %>% as.numeric()+tmp[27,12] %>% as.numeric()
+    
+    df[1,"seiki_unemp"] <- tmp[26,36] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"seiki_nilf"] <- tmp[26,37] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"hiseiki_unemp"] <- tmp[27,36] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"hiseiki_nilf"] <- tmp[27,37] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    df[1,"unemp_seiki"] <- tmp[36,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"unemp_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"nilf_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"nilf_seiki"] <- tmp[37,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    
+    
+    
+    df_master <- rbind(df_master,df)
+    
+    tmp <- read_xls(i,
+           sheet = 12,
+           range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"sex"] <- "female"
+    df[1,"age"] <- "55-"
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"employed_total"] <- tmp[4,1] %>% as.numeric()-tmp[4,42] %>% as.numeric()-tmp[4,43] %>% as.numeric()
+    df[1,"unemp_total"] <- tmp[36,1] %>% as.numeric()-tmp[36,42] %>% as.numeric()-tmp[36,43] %>% as.numeric()
+    df[1,"nilf_total"] <- tmp[37,1] %>% as.numeric()-tmp[37,42] %>% as.numeric()-tmp[37,43] %>% as.numeric()
+    
+    df[1,"employed_employed"] <- tmp[4,4] %>% as.numeric()
+    df[1,"employed_nilf"] <- tmp[4,37] %>% as.numeric()
+    df[1,"employed_unemp"] <- tmp[4,36] %>% as.numeric()
+    
+    df[1,"unemp_unemp"] <- tmp[36,36] %>% as.numeric()
+    df[1,"unemp_employed"] <- tmp[36,4] %>% as.numeric()
+    df[1,"unemp_nilf"] <- tmp[36,37] %>% as.numeric()
+    
+    df[1,"nilf_unemp"] <- tmp[37,36] %>% as.numeric()
+    df[1,"nilf_employed"] <- tmp[37,4] %>% as.numeric()
+    df[1,"nilf_nilf"] <- tmp[37,37] %>% as.numeric()
+    
+    df[1,"seiki_total"] <- tmp[26,1] %>% as.numeric() + tmp[12,1] %>% as.numeric()-(tmp[26,42] %>% as.numeric() + tmp[12,42] %>% as.numeric())-(tmp[26,43] %>% as.numeric() + tmp[12,43] %>% as.numeric())
+    df[1,"hiseiki_total"] <- tmp[27,1] %>% as.numeric() + tmp[13,1] %>% as.numeric()-(tmp[27,42] %>% as.numeric() + tmp[13,42] %>% as.numeric())-(tmp[27,43] %>% as.numeric() + tmp[13,43] %>% as.numeric())
+    
+    df[1,"seiki_seiki"] <- tmp[26,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()+tmp[12,26] %>% as.numeric()+tmp[26,12] %>% as.numeric()
+    df[1,"seiki_hiseiki"] <- tmp[26,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()+tmp[12,27] %>% as.numeric()+tmp[26,13] %>% as.numeric()
+    
+    df[1,"hiseiki_hiseiki"] <- tmp[27,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()+tmp[13,27] %>% as.numeric()+tmp[27,13] %>% as.numeric()
+    df[1,"hiseiki_seiki"] <- tmp[27,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()+tmp[13,26] %>% as.numeric()+tmp[27,12] %>% as.numeric()
+    
+    df[1,"seiki_unemp"] <- tmp[26,36] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"seiki_nilf"] <- tmp[26,37] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"hiseiki_unemp"] <- tmp[27,36] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"hiseiki_nilf"] <- tmp[27,37] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    df[1,"unemp_seiki"] <- tmp[36,26] %>% as.numeric() +tmp[12,12] %>% as.numeric()
+    df[1,"unemp_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[12,13] %>% as.numeric()
+    
+    df[1,"nilf_hiseiki"] <- tmp[37,27] %>% as.numeric()+tmp[13,13] %>% as.numeric()
+    df[1,"nilf_seiki"] <- tmp[37,26] %>% as.numeric()+tmp[13,12] %>% as.numeric()
+    
+    
+    
+    
+    df_master <- rbind(df_master,df)
+    
+    
+}
+```
+
+```{r}
+write.csv(df_master,here("201301_202303_２か月連続サンプル.csv"))
+```

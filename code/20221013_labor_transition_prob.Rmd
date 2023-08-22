@@ -1,0 +1,189 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+dir <- "C:\\Users\\bunse\\Documents\\labor_2months"
+
+files <-  list.files(str_c(dir,"\\koyou"),
+                     pattern = "xls",
+                     full.names = TRUE)
+
+
+
+```
+
+
+```{r, warning=FALSE}
+#就業形態は、"今月"_"先月"の順番で統一。
+
+transition_cols <- c("sex",
+                     "age",
+                     "yyyymm",
+
+
+                     "over_15yo_thismonth",
+                     "syugyo_thismonth",
+                     "koyou_thismonth",
+                     "unemp_thismonth",
+                     "nilf_thismonth",
+                     
+                     "koyou_koyou",
+                     
+                     "koyou_tennyu",
+                     "koyou_nilf",
+                     "koyou_unemp",
+                     
+                     "tensyutu_koyou",
+                     "nilf_koyou",
+                     "unemp_koyou",
+                     
+                     "lastmonth_over_15yo",
+                     "lastmonth_syugyo",
+                     "lastmonth_koyou",
+                     "lastmonth_nilf",
+                     "lastmonth_unemp"
+
+                     )
+
+
+
+age_list <- c("total","15-34","35-54","55-")
+sex_list <- c("total","male","female")
+
+```
+
+
+```{r, warning=FALSE}
+df_master <- data.frame(matrix(ncol = length(transition_cols))[0,])
+colnames(df_master) <- transition_cols
+
+for(i in files){
+  
+  for(j in 1:12){
+
+  
+  
+    tmp <- read_xls(i,
+         sheet = j,
+         range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+      
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"age"] <- age_list[j - 4 *(ceiling(j/4)-1)] 
+    df[1,"sex"] <- sex_list[ceiling(j/4)]
+    
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"over_15yo_thismonth"] <- tmp[2,1] %>% as.numeric()
+    df[1,"syugyo_thismonth"] <- tmp[4,1] %>% as.numeric()
+
+    df[1,"koyou_thismonth"] <- tmp[10,1] %>% as.numeric() + tmp[18,1] %>% as.numeric()
+    df[1,"unemp_thismonth"] <- tmp[36,1] %>% as.numeric()
+    df[1,"nilf_thismonth"] <- tmp[37,1] %>% as.numeric()
+    
+    df[1,"koyou_koyou"] <- tmp[10,10] %>% as.numeric() + tmp[10,18] %>% as.numeric() +tmp[18,10] %>% as.numeric()+tmp[18,18] %>% as.numeric()
+    
+    df[1,"koyou_tennyu"] <- tmp[10,43] %>% as.numeric()+tmp[18,43] %>% as.numeric()+tmp[10,42] %>% as.numeric()+tmp[18,42] %>% as.numeric()
+    df[1,"koyou_nilf"] <- tmp[10,37] %>% as.numeric()+tmp[18,37] %>% as.numeric()
+    df[1,"koyou_unemp"] <- tmp[10,36] %>% as.numeric()+tmp[18,36] %>% as.numeric()
+    
+    df[1,"tensyutu_koyou"] <- tmp[42,10] %>% as.numeric()+tmp[42,18] %>% as.numeric()
+    df[1,"nilf_koyou"] <- tmp[37,10] %>% as.numeric()+tmp[37,18] %>% as.numeric()
+    df[1,"unemp_koyou"] <- tmp[36,10] %>% as.numeric()+tmp[36,18] %>% as.numeric()
+    
+    
+    
+    df[1,"lastmonth_over_15yo"] <- tmp[1,2] %>% as.numeric()
+    df[1,"lastmonth_syugyo"] <- tmp[1,4] %>% as.numeric()
+    df[1,"lastmonth_koyou"] <- tmp[1,10] %>% as.numeric()+tmp[1,18] %>% as.numeric()
+
+    df[1,"lastmonth_unemp"] <- tmp[1,36] %>% as.numeric()
+    df[1,"lastmonth_nilf"] <- tmp[1,37] %>% as.numeric()
+    
+    
+    df_master <- rbind(df_master,df)
+    
+  }
+}
+    
+
+
+write.csv(df_master,str_c(dir,"月次資料用_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),"_２か月連続サンプル.csv"))
+
+```
+
+
+##out of sample を除いたもの
+
+```{r, warning=FALSE}
+df_master <- data.frame(matrix(ncol = length(transition_cols))[0,])
+colnames(df_master) <- transition_cols
+
+for(i in files){
+  
+  for(j in 1:12){
+
+  
+  
+    tmp <- read_xls(i,
+         sheet = j,
+         range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+      
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    df[1,"age"] <- age_list[j - 4 *(ceiling(j/4)-1)] 
+    df[1,"sex"] <- sex_list[ceiling(j/4)]
+    
+    df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    
+    df[1,"over_15yo_thismonth"] <- tmp[2,1] %>% as.numeric() -as.numeric(tmp[2,42])-as.numeric(tmp[2,43])
+    df[1,"syugyo_thismonth"] <- tmp[4,1] %>% as.numeric()-as.numeric(tmp[4,42])-as.numeric(tmp[4,43])
+
+    df[1,"koyou_thismonth"] <- tmp[10,1] %>% as.numeric() + tmp[18,1] %>% as.numeric()-as.numeric(tmp[10,42])-as.numeric(tmp[10,43])-as.numeric(tmp[18,42])-as.numeric(tmp[18,43])
+    df[1,"unemp_thismonth"] <- tmp[36,1] %>% as.numeric()-as.numeric(tmp[36,42])-as.numeric(tmp[36,43])
+    df[1,"nilf_thismonth"] <- tmp[37,1] %>% as.numeric()-as.numeric(tmp[37,42])-as.numeric(tmp[37,43])
+    
+    df[1,"koyou_koyou"] <- tmp[10,10] %>% as.numeric() + tmp[10,18] %>% as.numeric() +tmp[18,10] %>% as.numeric()+tmp[18,18] %>% as.numeric()
+    
+    df[1,"koyou_tennyu"] <- tmp[10,43] %>% as.numeric()+tmp[18,43] %>% as.numeric()+tmp[10,42] %>% as.numeric()+tmp[18,42] %>% as.numeric()
+    df[1,"koyou_nilf"] <- tmp[10,37] %>% as.numeric()+tmp[18,37] %>% as.numeric()
+    df[1,"koyou_unemp"] <- tmp[10,36] %>% as.numeric()+tmp[18,36] %>% as.numeric()
+    
+    df[1,"tensyutu_koyou"] <- tmp[42,10] %>% as.numeric()+tmp[42,18] %>% as.numeric()
+    df[1,"nilf_koyou"] <- tmp[37,10] %>% as.numeric()+tmp[37,18] %>% as.numeric()
+    df[1,"unemp_koyou"] <- tmp[36,10] %>% as.numeric()+tmp[36,18] %>% as.numeric()
+    
+    
+    
+    df[1,"lastmonth_over_15yo"] <- tmp[1,2] %>% as.numeric()-as.numeric(tmp[42,2])
+    df[1,"lastmonth_syugyo"] <- tmp[1,4] %>% as.numeric()-as.numeric(tmp[42,4])
+    df[1,"lastmonth_koyou"] <- tmp[1,10] %>% as.numeric()+tmp[1,18] %>% as.numeric()-as.numeric(tmp[42,10])-as.numeric(tmp[42,18])
+
+    df[1,"lastmonth_unemp"] <- tmp[1,36] %>% as.numeric()-as.numeric(tmp[42,36])
+    df[1,"lastmonth_nilf"] <- tmp[1,37] %>% as.numeric()-as.numeric(tmp[42,37])
+    
+    
+    df_master <- rbind(df_master,df)
+    
+  }
+}
+    
+
+
+write.csv(df_master,str_c(dir,"\\月次資料用_連続存在サンプルのみ_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),"_２か月連続サンプル.csv"))
+
+```
+

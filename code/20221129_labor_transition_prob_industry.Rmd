@@ -1,0 +1,114 @@
+　　　---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+files <-  list.files("C:\\Users\\bunse\\Documents\\labor_2months\\sangyo",
+                     pattern = "xls",
+                     full.names = TRUE)
+
+industry <- c("総数","労働力人口","就業者","農業・林業","漁業", "鉱業，採石業，砂利採取業", 
+"建設業", "製造業", "電気・ガス・熱供給・水道業", 
+"情報通信業", "運輸業，郵便業", "卸売業，小売業", 
+"金融業，保険業", "不動産業，物品賃貸業", "学術研究，専門・技術サービス業", 
+"宿泊業，飲食サービス業", "生活関連サービス業，娯楽業", 
+"教育，学習支援業", "医療，福祉", "複合サービス事業", 
+"サービス業", "公務", "分類不能の産業","完全失業者","非労働力人口")
+
+
+industry_num <- c(1,3:5,7:27)
+
+
+age <- c("総数","15～34歳","35～54歳","55歳以上")
+
+sex_and_age <- c(str_c("男女計_",age),str_c("男性_",age),str_c("女性",age))
+
+
+
+```
+
+##メインコード
+更新時は、新しいファイルだけをフォルダに格納
+```{r, warning=FALSE}
+
+#就業形態は、"今月"_"先月"の順番で統一。
+
+transition_cols <- c("sex_and_age",
+                     "yyyymm",
+                     "last_month",
+                     "this_month",
+                     "num"
+                     )
+
+tmp <- read_xls(files[1],
+         sheet = 1,
+         range = "O12:AR41") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0)) %>% 
+  
+  return()
+
+
+df_master <- data.frame(matrix(ncol = length(transition_cols))[0,])
+colnames(df_master) <- transition_cols
+
+
+
+
+i = files[[1]]
+
+j = 1
+
+for(i in files){
+  
+  for(j in 1:12){
+  
+  
+    tmp <- read_xls(i,
+         sheet = j,
+         range = "O12:AR41") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0))
+      
+    
+    df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    colnames(df) <- transition_cols
+    
+    for (m in 1:length(industry)){
+      
+      for (n in 1:length(industry)){
+        
+        df[n,"sex_and_age"] <- sex_and_age[j]
+        df[n,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% str_c(.,"01") %>% as.numeric()
+      
+        df[n,"last_month"] <- industry[m]
+        df[n,"this_month"] <- industry[n]
+        
+        df[n,"num"] <- tmp[industry_num[n],industry_num[m]] %>% as.numeric()
+        
+      }
+    
+      df_master <- rbind(df_master,df)
+    
+    }
+  }
+}
+```
+
+```{r}
+write.csv(df_master,
+          str_c("C:\\Users\\bunse\\Documents\\labor_2months\\",format(Sys.time(), "%Y-%m-%d_%H-%M"),"２か月連続サンプル_産業.csv"),
+          
+          fileEncoding = "cp932")
+
+df_master %>%
+  filter(num>0) %>% 
+write.csv(.,
+          str_c("C:\\Users\\bunse\\Documents\\labor_2months\\",format(Sys.time(), "%Y-%m-%d_%H-%M"),"２か月連続サンプル_産業_省データ.csv"),
+          
+          fileEncoding = "cp932")
+```

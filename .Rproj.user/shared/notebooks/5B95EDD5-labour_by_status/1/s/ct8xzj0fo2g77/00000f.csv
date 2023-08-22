@@ -1,0 +1,6 @@
+"0","df_master <- read.csv(fpath,fileEncoding = ""cp932"")
+"
+"2"," 警告:  cannot open file 'D:/develop/R/labor_2months/202305/treated_data/labour_status_201301_202305.csv': No such file or directory"
+"2","Error in file(file, ""rt"", encoding = fileEncoding) : 
+  cannot open the connection
+"

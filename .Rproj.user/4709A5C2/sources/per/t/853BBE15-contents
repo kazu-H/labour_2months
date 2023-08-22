@@ -1,0 +1,402 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+正規・非正規の動向を評価するためのdataを整備する。
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(here)
+
+
+
+files <-  list.files(here("data","koyou"),
+                     pattern = "xls",
+                     full.names = TRUE)
+
+vertical_name <- c('総数','今月いた15歳以上人口','労働力人口','就業者','従業者','休業者','農業林業','農_自営業主','農_家族従業者','農_雇用者','農_役員を除く雇用者','農_正規の職員従業員','農_非正規の職員従業員','農_従業上の地位不詳','非農林業','非農_自営業主','非農_家族従業者','非農_雇用者','非農_1～29人','非農_30～99人','非農_100～499人','非農_500人以上','非農_官公','非農_従業者規模不詳','非農_役員を除く雇用者','非農_正規の職員従業員','非農_非正規の職員従業員','非農_パートアルバイト','非農_パート','非農_アルバイト','非農_労働者派遣事業所の派遣社員','非農_契約社員','非農_嘱託','非農_その他','非農_従業上の地位不詳','完全失業者','非労働力人口','通学','家事','その他','就業状態不詳','前月いて今月いなかった者')
+
+horizontal_name <- c('総数','前月いた15歳以上人口','労働力人口','就業者','従業者','休業者','農業林業','農_自営業主','農_家族従業者','農_雇用者','農_役員を除く雇用者','農_正規の職員従業員','農_非正規の職員従業員','農_従業上の地位不詳','非農林業','非農_自営業主','非農_家族従業者','非農_雇用者','非農_1～29人','非農_30～99人','非農_100～499人','非農_500人以上','非農_官公','非農_従業者規模不詳','非農_役員を除く雇用者','非農_正規の職員従業員','非農_非正規の職員従業員','非農_パートアルバイト','非農_パート','非農_アルバイト','非農_労働者派遣事業所の派遣社員','非農_契約社員','非農_嘱託','非農_その他','非農_従業上の地位不詳','完全失業者','非労働力人口','通学','家事','その他','就業状態不詳','前月14歳で今月15歳の者','前月いなかった者')
+```
+
+
+```{r, warning=FALSE}
+
+
+
+age_list <- c("total","15-34","35-54","55-")
+sex_list <- c("total","male","female")
+
+```
+
+```{r}
+    tmp <- read_xls(files[3],
+         sheet = 1,
+         range = "T18:BJ60") %>%  
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0)) %>% 
+      set_colnames(horizontal_name) %>% 
+      mutate(thismonth_status = vertical_name)
+```
+
+##out of sample を除いたもの
+
+```{r, warning=FALSE}
+df_master <- NULL
+
+for(i in files){
+  
+  for(j in 1:12){
+
+  
+  
+    tmp <- read_xls(i,
+         sheet = j,
+         range = "T18:BJ60") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0)) %>% 
+      set_colnames(horizontal_name) %>% 
+      mutate(thismonth_status = vertical_name) %>% 
+      mutate(yyyymm = i %>% str_sub(start = -10,end = -5) %>% as.numeric()) %>% 
+      mutate(age = age_list[j - 4 *(ceiling(j/4)-1)] ) %>% 
+      mutate(sex = sex_list[ceiling(j/4)]) %>% 
+      select(yyyymm,age,sex,thismonth_status,everything())
+      
+    
+    # df <- data.frame(matrix(ncol = length(transition_cols))[0,])
+    # colnames(df) <- transition_cols
+    # 
+    # df[1,"age"] <- age_list[j - 4 *(ceiling(j/4)-1)] 
+    # df[1,"sex"] <- sex_list[ceiling(j/4)]
+    # 
+    # df[1,"yyyymm"] <- i %>% str_sub(start = -10,end = -5) %>% as.numeric()
+    # 
+    # df[1,"seiki_lastmonth"] <- as.numeric(tmp[12,2])+as.numeric(tmp[26,2]) -as.numeric(tmp[12,42])-as.numeric(tmp[12,43])-as.numeric(tmp[26,42])-as.numeric(tmp[26,43])
+    # 
+    # df[1,"seiki_seiki"] <- as.numeric(tmp[12,12])+as.numeric(tmp[26,12]) +as.numeric(tmp[12,26])+as.numeric(tmp[26,26]) 
+    # df[1,"seiki_hiseiki"] <- as.numeric(tmp[12,13])+as.numeric(tmp[26,13]) +as.numeric(tmp[12,27])+as.numeric(tmp[26,27])
+    # df[1,"seiki_unemp"] <- as.numeric(tmp[12,36])+as.numeric(tmp[26,36])
+    # df[1,"seiki_nilf"] <- as.numeric(tmp[12,37])+as.numeric(tmp[26,37])
+    # 
+    # df[1,"hiseiki_seiki"] <- as.numeric(tmp[13,12])+as.numeric(tmp[13,26]) +as.numeric(tmp[27,12])+as.numeric(tmp[27,26])
+    # df[1,"unemp_seiki"] <- as.numeric(tmp[36,12])+as.numeric(tmp[36,26])
+    # df[1,"nilf_seiki"] <- as.numeric(tmp[37,12])+as.numeric(tmp[37,26])
+    # 
+    # df[1,"seiki_thismonth"] <- as.numeric(tmp[2,12])+as.numeric(tmp[2,26])-as.numeric(tmp[42,12])+as.numeric(tmp[42,26])
+    
+    
+    df_master <- rbind(df_master,tmp)
+    
+  }
+}
+    
+
+
+write.csv(df_master,here("treated_data",str_c("labour_status_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+
+i <- files[length(files)]
+```
+
+##if necessary
+```{r}
+fpath <- 
+  here("treated_data",str_c("labour_status_201301_",
+                            
+                            files[length(files)] %>% 
+                              as.character() %>% 
+                              str_sub(start = -10,end = -5)
+  ,".csv"))
+
+df_master <- read.csv(fpath,fileEncoding = "cp932")
+
+```
+
+##正規雇用編
+
+正規雇用への流入を集計
+```{r}
+df_to_seiki <- 
+  df_master%>% 
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status", "就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月14歳で今月15歳の者','前月いなかった者')
+
+         ) %>% 
+  
+  filter(thismonth_status %in% c( "農_正規の職員従業員", "非農_正規の職員従業員")) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("thismonth_status","農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  
+  group_by(yyyymm,age,sex) %>% 
+  summarise_all(sum) %>% 
+  ungroup() %>% 
+  
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月14歳で今月15歳の者", "前月いなかった者") %>% 
+  
+  return()
+
+# colnames(df_to_seiki) %>% dput()
+  
+```
+
+正規雇用からの流出を集計
+
+```{r}
+df_from_seiki <- 
+  df_master%>%
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status","正規")
+         ) %>%
+  filter(thismonth_status %in% c("就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月いて今月いなかった者')
+      　) %>% 
+  
+  pivot_wider(names_from = thismonth_status,
+              values_from = 正規) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月いて今月いなかった者", ) %>% 
+  return()
+  
+  
+# colnames(df_from_seiki) %>% dput()
+```
+
+正規雇用との流出入ファイルを保存
+```{r}
+write.csv(df_to_seiki,here("treated_data",str_c("正規雇用への流入_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+
+write.csv(df_from_seiki,here("treated_data",str_c("正規雇用からの流出_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+```
+
+
+##非正規雇用編
+
+非正規雇用への流入を集計
+```{r}
+df_to_seiki <- 
+  df_master%>% 
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status", "就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月14歳で今月15歳の者','前月いなかった者')
+
+         ) %>% 
+  
+  filter(thismonth_status %in% c( "農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("thismonth_status","農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  
+  group_by(yyyymm,age,sex) %>% 
+  summarise_all(sum) %>% 
+  ungroup() %>% 
+  
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月14歳で今月15歳の者", "前月いなかった者") %>% 
+  
+  return()
+
+# colnames(df_to_seiki) %>% dput()
+  
+```
+
+非正規雇用からの流出を集計
+
+```{r}
+df_from_seiki <- 
+  df_master%>%
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status","非正規")
+         ) %>%
+  filter(thismonth_status %in% c("就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月いて今月いなかった者')
+      　) %>% 
+  
+  pivot_wider(names_from = thismonth_status,
+              values_from = 非正規) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月いて今月いなかった者", ) %>% 
+  return()
+  
+  
+# colnames(df_from_seiki) %>% dput()
+```
+
+非正規雇用との流出入ファイルを保存
+```{r}
+write.csv(df_to_seiki,here("treated_data",str_c("非正規雇用への流入_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+
+write.csv(df_from_seiki,here("treated_data",str_c("非正規雇用からの流出_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+```
+
+##完全失業者
+
+完全失業者への流入を集計
+```{r}
+df_to_seiki <- 
+  df_master%>% 
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status", "就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月14歳で今月15歳の者','前月いなかった者')
+
+         ) %>% 
+  
+  filter(thismonth_status %in% c("完全失業者")) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("thismonth_status","農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  
+  group_by(yyyymm,age,sex) %>% 
+  summarise_all(sum) %>% 
+  ungroup() %>% 
+  
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月14歳で今月15歳の者", "前月いなかった者") %>% 
+  
+  return()
+
+# colnames(df_to_seiki) %>% dput()
+  
+```
+
+完全失業者からの流出を集計
+
+```{r}
+df_from_seiki <- 
+  df_master%>%
+
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status","完全失業者")
+         ) %>%
+  filter(thismonth_status %in% c("就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月いて今月いなかった者')
+      　) %>% 
+  
+  pivot_wider(names_from = thismonth_status,
+              values_from = 完全失業者) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月いて今月いなかった者", ) %>% 
+  return()
+  
+  
+# colnames(df_from_seiki) %>% dput()
+```
+
+完全失業者との流出入ファイルを保存
+```{r}
+write.csv(df_to_seiki,here("treated_data",str_c("完全失業者への流入_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+
+write.csv(df_from_seiki,here("treated_data",str_c("完全失業者からの流出_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+```
+
+
+##非労働力人口
+
+非労働力人口への流入を集計
+```{r}
+df_to_seiki <- 
+  df_master%>% 
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status", "就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月14歳で今月15歳の者','前月いなかった者')
+
+         ) %>% 
+  
+  filter(thismonth_status %in% c("非労働力人口")) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("thismonth_status","農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  
+  group_by(yyyymm,age,sex) %>% 
+  summarise_all(sum) %>% 
+  ungroup() %>% 
+  
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月14歳で今月15歳の者", "前月いなかった者") %>% 
+  
+  return()
+
+# colnames(df_to_seiki) %>% dput()
+  
+```
+
+非労働力人口からの流出を集計
+
+```{r}
+df_from_seiki <- 
+  df_master%>%
+
+  select(
+    c("yyyymm", "age", "sex", "thismonth_status","非労働力人口")
+         ) %>%
+  filter(thismonth_status %in% c("就業者", "農_正規の職員従業員", "農_非正規の職員従業員", 
+      　"非農_正規の職員従業員", "非農_非正規の職員従業員","完全失業者", "非労働力人口",'就業状態不詳','前月いて今月いなかった者')
+      　) %>% 
+  
+  pivot_wider(names_from = thismonth_status,
+              values_from = 非労働力人口) %>% 
+  mutate(正規　= 農_正規の職員従業員 +非農_正規の職員従業員) %>% 
+  mutate(非正規　= 農_非正規の職員従業員 +非農_非正規の職員従業員) %>% 
+  select(!c("農_正規の職員従業員", "非農_正規の職員従業員","農_非正規の職員従業員", "非農_非正規の職員従業員")) %>% 
+  mutate(その他就業 = 就業者-正規-非正規) %>% 
+  
+  select("yyyymm", "age", "sex", "就業者", "完全失業者", "非労働力人口", 
+
+"正規", "非正規", "その他就業","就業状態不詳", "前月いて今月いなかった者", ) %>% 
+  return()
+  
+  
+# colnames(df_from_seiki) %>% dput()
+```
+
+非労働力人口との流出入ファイルを保存
+```{r}
+write.csv(df_to_seiki,here("treated_data",str_c("非労働力人口への流入_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+
+write.csv(df_from_seiki,here("treated_data",str_c("非労働力人口からの流出_201301_",i %>% str_sub(start = -10,end = -5) %>% as.character(),".csv")),
+          fileEncoding = "cp932")
+```
+

@@ -1,0 +1,5 @@
+"0","write.csv(df_to_seiki,here(""treated_data"",str_c(""非労働力人口への流入_201301_"",i %>% str_sub(start = -10,end = -5) %>% as.character(),"".csv"")),"
+"0","          fileEncoding = ""cp932"")"
+"0",""
+"0","write.csv(df_from_seiki,here(""treated_data"",str_c(""非労働力人口からの流出_201301_"",i %>% str_sub(start = -10,end = -5) %>% as.character(),"".csv"")),"
+"0","          fileEncoding = ""cp932"")"

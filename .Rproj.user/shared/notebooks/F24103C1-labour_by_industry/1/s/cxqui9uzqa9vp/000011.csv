@@ -1,0 +1,14 @@
+"0","    tmp <- read_xls(files[3],
+         sheet = 1,
+         range = ""O12:AR41"") %>% 
+      mutate_all(as.numeric) %>% 
+      mutate_all(~replace_na(.,0)) %>% 
+      set_colnames(horizontal_name) %>% 
+      mutate(thismonth_status = vertical_name)
+"
+"2"," 警告:  [38;5;195mThere were 28 warnings in `mutate()`.
+The first warning was:[39m
+[38;5;195m[36mℹ[38;5;195m In argument: `3 = .Primitive(""as.double"")(`3`)`.[39m
+Caused by warning:
+[33m![39m NAs introduced by coercion
+[38;5;195m[36mℹ[38;5;195m Run ]8;;ide:run:dplyr::last_dplyr_warnings()dplyr::last_dplyr_warnings()]8;; to see the 27 remaining warnings.[39m"

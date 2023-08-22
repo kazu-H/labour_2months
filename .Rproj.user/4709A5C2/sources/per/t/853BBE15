@@ -1,0 +1,27 @@
+{
+    "id": "853BBE15",
+    "path": "D:/develop/R/labor_2months/code/labour_by_status.Rmd",
+    "project_path": "code/labour_by_status.Rmd",
+    "type": "r_markdown",
+    "hash": "2635249840",
+    "contents": "",
+    "dirty": false,
+    "created": 1682897974283.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "375,13",
+        "scrollLine": "366"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1690366406,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1690366405302,
+    "read_only": false,
+    "read_only_alternatives": []
+}
