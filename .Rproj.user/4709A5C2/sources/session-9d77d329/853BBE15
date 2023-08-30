@@ -1,9 +1,9 @@
 {
     "id": "853BBE15",
-    "path": "D:/develop/R/labor_2months/code/labour_by_status.Rmd",
+    "path": "//wsl.localhost/Ubuntu/home/bunseki/develop/labour_2months/code/labour_by_status.Rmd",
     "project_path": "code/labour_by_status.Rmd",
     "type": "r_markdown",
-    "hash": "2635249840",
+    "hash": "3724738593",
     "contents": "",
     "dirty": false,
     "created": 1682897974283.0,
@@ -13,15 +13,15 @@
         "chunk_output_type": "inline",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "375,13",
-        "scrollLine": "366"
+        "cursorPosition": "59,16",
+        "scrollLine": "37"
     },
     "folds": "",
-    "lastKnownWriteTime": 1690366406,
+    "lastKnownWriteTime": 1693361037,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1690366405302,
+    "last_content_update": 1693361037824,
     "read_only": false,
     "read_only_alternatives": []
 }

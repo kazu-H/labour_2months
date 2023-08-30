@@ -12,7 +12,7 @@ library(here)
 
 
 
-files <-  list.files(here("data","koyou"),
+files <-  list.files(here("data","koyou_tokusyu"),
                      pattern = "xls",
                      full.names = TRUE)
 
@@ -57,7 +57,7 @@ for(i in files){
          range = "T18:BJ60") %>% 
       mutate_all(as.numeric) %>% 
       mutate_all(~replace_na(.,0)) %>% 
-      set_colnames(horizontal_name) %>% 
+      magrittr::set_colnames(horizontal_name) %>% 
       mutate(thismonth_status = vertical_name) %>% 
       mutate(yyyymm = i %>% str_sub(start = -10,end = -5) %>% as.numeric()) %>% 
       mutate(age = age_list[j - 4 *(ceiling(j/4)-1)] ) %>% 
